@@ -106,7 +106,7 @@ export async function sendBlobTransaction(
     } else {
       throw new Error('Provider does not support send method');
     }
-  } catch (e: unknown) {
+  } catch {
     // Fallback to default if RPC doesn't support eth_blobGasPrice
     maxFeePerBlobGas = 400_000_000_000n; // 400 gwei
     console.log(
@@ -117,15 +117,74 @@ export async function sendBlobTransaction(
   }
 
   // Build transaction request
-  const txRequest = {
+  const maxFeePerGas = feeData.maxFeePerGas ?? 30n * 10n ** 9n;
+  const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? 2n * 10n ** 9n;
+  
+  const baseTxRequest = {
     type: 3, // Blob transaction type
     to: contractAddress, // Contract address - blob + contract call
     data: fulfillData, // Encoded fulfill function call data
-    maxFeePerGas: feeData.maxFeePerGas ?? 30n * 10n ** 9n,
-    maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ?? 2n * 10n ** 9n,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
     maxFeePerBlobGas: maxFeePerBlobGas,
     blobs: [{ data: blobData.blob, commitment: blobData.commitment, proof: blobData.proof }],
   };
+
+  // Estimate gas and check balance before sending
+  let estimatedGas: bigint | undefined;
+  try {
+    console.log('Estimating gas for blob transaction...');
+    const rawEstimatedGas = await wallet.provider!.estimateGas(baseTxRequest);
+    console.log('Raw estimated gas:', rawEstimatedGas.toString());
+
+    // Apply 1.5x buffer to gas limit for safety margin (accounts for gas price fluctuations)
+    const GAS_BUFFER_MULTIPLIER = 150n; // 1.5x = 150%
+    estimatedGas = (rawEstimatedGas * GAS_BUFFER_MULTIPLIER) / 100n;
+    console.log('Estimated gas with 1.5x buffer:', estimatedGas.toString());
+
+    // Calculate total cost: regular gas + blob gas
+    // Blob gas is fixed at 131072 per blob (EIP-4844)
+    const BLOB_GAS_PER_BLOB = 131072n;
+    const blobGasCost = maxFeePerBlobGas * BLOB_GAS_PER_BLOB;
+    const regularGasCost = estimatedGas * maxFeePerGas;
+    const totalCost = regularGasCost + blobGasCost;
+    
+    console.log('Gas cost breakdown:', {
+      rawEstimatedGas: rawEstimatedGas.toString(),
+      bufferedGas: estimatedGas.toString(),
+      regularGasCost: regularGasCost.toString(),
+      blobGas: BLOB_GAS_PER_BLOB.toString(),
+      blobGasCost: blobGasCost.toString(),
+      totalCost: totalCost.toString(),
+      totalCostEth: (Number(totalCost) / 1e18).toFixed(6),
+    });
+
+    // Check wallet balance
+    const balance = await wallet.provider!.getBalance(wallet.address);
+    console.log('Wallet balance:', balance.toString(), 'wei', `(${(Number(balance) / 1e18).toFixed(6)} ETH)`);
+    
+    if (balance < totalCost) {
+      const shortfall = totalCost - balance;
+      throw new Error(
+        `Insufficient funds for transaction. ` +
+        `Required: ${totalCost.toString()} wei (${(Number(totalCost) / 1e18).toFixed(6)} ETH), ` +
+        `Available: ${balance.toString()} wei (${(Number(balance) / 1e18).toFixed(6)} ETH), ` +
+        `Shortfall: ${shortfall.toString()} wei (${(Number(shortfall) / 1e18).toFixed(6)} ETH)`
+      );
+    }
+  } catch (estimateError: unknown) {
+    const errorMessage = estimateError instanceof Error ? estimateError.message : String(estimateError);
+    if (errorMessage.includes('Insufficient funds')) {
+      throw estimateError; // Re-throw our custom error
+    }
+    console.warn('Gas estimation failed, proceeding without limit:', errorMessage);
+    // Continue without gas limit - ethers will estimate automatically
+  }
+
+  // Build final transaction request with gas limit if estimated
+  const txRequest = estimatedGas 
+    ? { ...baseTxRequest, gasLimit: estimatedGas }
+    : baseTxRequest;
 
   // Send blob transaction WITH fulfill escrow contract call (ONE transaction)
   let blobTx: TransactionResponse;
