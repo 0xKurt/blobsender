@@ -133,7 +133,11 @@ function BlobSenderApp() {
   }, []);
 
   useEffect(() => {
-    setMounted(true);
+    // Defer state update to avoid hydration mismatch
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    
     // Only fetch once on mount
     fetchBlobPrice(false); // Use cache if available
     fetchRecentBlobs();
@@ -146,7 +150,10 @@ function BlobSenderApp() {
       }
     }, 60000); // 60 seconds - recent blobs don't need frequent updates
     
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [fetchBlobPrice, fetchRecentBlobs]);
 
   const handleEscrowConfirmed = useCallback(
@@ -518,8 +525,16 @@ export default function Home() {
   // Get wagmi config lazily on client side only
   // Use useState with lazy initialization to avoid loading during SSR
   const [config, setConfig] = useState<ReturnType<typeof getWagmiConfig> | null>(null);
-  // Use lazy initializer to avoid calling setState in effect
-  const [mounted] = useState(() => typeof window !== 'undefined');
+  // Initialize to false, set to true after mount to avoid hydration mismatch
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    // Set mounted to true after component mounts
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
   
   useEffect(() => {
     // Only load config after component has mounted on client
