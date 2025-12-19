@@ -2,7 +2,7 @@ import { JsonRpcProvider } from 'ethers';
 
 const DEFAULT_BLOB_GAS_USED = 131072n; // Typical gas per blob
 const ETH_WEI = 1_000_000_000_000_000_000n; // 1 ETH in wei
-const BUFFER_MULTIPLIER = 1_000n;
+const BUFFER_MULTIPLIER = 300n;
 
 /**
  * Calculate blob price from fee data
