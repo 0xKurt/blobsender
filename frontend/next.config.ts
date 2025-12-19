@@ -9,13 +9,11 @@ const nextConfig: NextConfig = {
   },
   // Include WASM files from @blobkit/kzg-wasm in the deployment bundle
   // This is required for KZG initialization in serverless environments (Vercel)
-  experimental: {
-    outputFileTracingIncludes: {
-      '/api/create-blob': [
-        './node_modules/@blobkit/kzg-wasm/**/*',
-        './node_modules/kzg-wasm/**/*',
-      ],
-    },
+  outputFileTracingIncludes: {
+    '/api/create-blob': [
+      './node_modules/@blobkit/kzg-wasm/**/*',
+      './node_modules/kzg-wasm/**/*',
+    ],
   },
 };
 
