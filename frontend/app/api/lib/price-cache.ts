@@ -1,125 +1,42 @@
 /**
- * File-based price quote cache for blob price API
+ * Upstash Redis-based price quote cache for blob price API
  * This ensures quotes are accessible across different API routes and serverless function invocations
- * Uses filesystem to persist cache across instances
+ * Uses Upstash Redis for persistence in serverless environments
  */
 
-import { promises as fs } from 'fs';
-import { join, dirname } from 'path';
+import { getRedisClient, isUpstashConfigured } from './upstash';
 
 interface PriceQuote {
   priceWei: string;
   timestamp: number;
 }
 
-interface CacheFile {
-  quotes: Record<string, PriceQuote>;
-  lastCleanup: number;
-}
-
 const QUOTE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
-const CLEANUP_INTERVAL_MS = 60 * 1000; // 1 minute
-
-// Cache file path (in .next/cache directory, which is gitignored)
-const getCacheFilePath = (): string => {
-  // Use process.cwd() to get the project root, then create cache directory
-  const cacheDir = join(process.cwd(), '.next', 'cache', 'price-quotes');
-  return join(cacheDir, 'quotes.json');
-};
-
-/**
- * Ensure cache directory exists
- */
-async function ensureCacheDir(): Promise<void> {
-  const cacheFilePath = getCacheFilePath();
-  const cacheDir = dirname(cacheFilePath);
-  try {
-    await fs.mkdir(cacheDir, { recursive: true });
-  } catch (error: unknown) {
-    // Directory might already exist, that's fine
-    if ((error as { code?: string })?.code !== 'EEXIST') {
-      console.warn('[price-cache] Could not create cache directory:', error);
-    }
-  }
-}
-
-/**
- * Read cache from file
- */
-async function readCache(): Promise<CacheFile> {
-  try {
-    await ensureCacheDir();
-    const cacheFilePath = getCacheFilePath();
-    const data = await fs.readFile(cacheFilePath, 'utf-8');
-    const cache: CacheFile = JSON.parse(data);
-    return cache;
-  } catch (error: unknown) {
-    // File doesn't exist or is invalid, return empty cache
-    if ((error as { code?: string })?.code === 'ENOENT') {
-      return { quotes: {}, lastCleanup: Date.now() };
-    }
-    console.warn('[price-cache] Error reading cache file:', error);
-    return { quotes: {}, lastCleanup: Date.now() };
-  }
-}
-
-/**
- * Write cache to file
- */
-async function writeCache(cache: CacheFile): Promise<void> {
-  try {
-    await ensureCacheDir();
-    const cacheFilePath = getCacheFilePath();
-    await fs.writeFile(cacheFilePath, JSON.stringify(cache, null, 2), 'utf-8');
-  } catch (error: unknown) {
-    console.error('[price-cache] Error writing cache file:', error);
-    throw error;
-  }
-}
-
-/**
- * Clean up expired quotes
- */
-async function cleanupExpiredQuotes(cache: CacheFile): Promise<CacheFile> {
-  const now = Date.now();
-  const shouldCleanup = now - cache.lastCleanup > CLEANUP_INTERVAL_MS;
-  
-  if (!shouldCleanup) {
-    return cache;
-  }
-
-  const expiredIds: string[] = [];
-  for (const [quoteId, quote] of Object.entries(cache.quotes)) {
-    if (now - quote.timestamp > QUOTE_EXPIRY_MS) {
-      expiredIds.push(quoteId);
-    }
-  }
-
-  for (const id of expiredIds) {
-    delete cache.quotes[id];
-  }
-
-  cache.lastCleanup = now;
-
-  if (expiredIds.length > 0) {
-    console.log(`[price-cache] Cleaned up ${expiredIds.length} expired quotes`);
-  }
-
-  return cache;
-}
+const REDIS_KEY_PREFIX = 'price-quote:';
 
 /**
  * Store a price quote with a unique ID
  */
 export async function storePriceQuote(quoteId: string, priceWei: string): Promise<void> {
+  if (!isUpstashConfigured()) {
+    const error = new Error('Upstash Redis is required for price quote caching. Please configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables.');
+    console.error('[price-cache]', error.message);
+    throw error;
+  }
+
   try {
-    const cache = await readCache();
-    cache.quotes[quoteId] = {
+    const redis = getRedisClient();
+    const quote: PriceQuote = {
       priceWei,
       timestamp: Date.now(),
     };
-    await writeCache(cache);
-    console.log(`[price-cache] Stored quote ID: ${quoteId} for price: ${priceWei} wei`);
+    
+    // Store quote with TTL (expires automatically)
+    const quoteKey = `${REDIS_KEY_PREFIX}${quoteId}`;
+    const ttlSeconds = Math.ceil(QUOTE_EXPIRY_MS / 1000);
+    await redis.setex(quoteKey, ttlSeconds, quote);
+    
+    console.log(`[price-cache] Stored quote ID: ${quoteId} for price: ${priceWei} wei (TTL: ${ttlSeconds}s)`);
   } catch (error: unknown) {
     console.error('[price-cache] Error storing quote:', error);
     throw error;
@@ -131,26 +48,27 @@ export async function storePriceQuote(quoteId: string, priceWei: string): Promis
  * Returns null if quote doesn't exist or has expired
  */
 export async function getPriceQuote(quoteId: string): Promise<string | null> {
+  if (!isUpstashConfigured()) {
+    console.error('[price-cache] Upstash not configured, cannot retrieve quote');
+    return null;
+  }
+
   try {
-    let cache = await readCache();
-    cache = await cleanupExpiredQuotes(cache);
+    const redis = getRedisClient();
+    const quoteKey = `${REDIS_KEY_PREFIX}${quoteId}`;
+    const quote = await redis.get<PriceQuote>(quoteKey);
     
-    const quote = cache.quotes[quoteId];
     if (!quote) {
-      const availableIds = Object.keys(cache.quotes);
       console.log(`[price-cache] Quote ID not found: ${quoteId}`);
-      console.log(`[price-cache] Available quotes: ${availableIds.length} (${availableIds.slice(0, 5).join(', ')}${availableIds.length > 5 ? '...' : ''})`);
-      // Write cleaned cache back
-      await writeCache(cache);
       return null;
     }
     
-    // Check if quote expired (double-check, cleanup might have missed it)
+    // Double-check expiration (Redis TTL should handle this, but check anyway)
     const age = Date.now() - quote.timestamp;
     if (age > QUOTE_EXPIRY_MS) {
       console.log(`[price-cache] Quote ID expired: ${quoteId} (age: ${age}ms)`);
-      delete cache.quotes[quoteId];
-      await writeCache(cache);
+      // Delete the expired quote
+      await redis.del(quoteKey);
       return null;
     }
     
@@ -168,5 +86,3 @@ export async function getPriceQuote(quoteId: string): Promise<string | null> {
 export function generateQuoteId(): string {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
-
-

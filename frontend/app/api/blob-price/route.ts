@@ -8,7 +8,7 @@ export async function GET() {
     const config = getServerConfigInstance();
     const priceData = await calculateBlobPrice(config.rpcUrl);
     
-    // Generate a unique quote ID and cache the price (file-based cache)
+    // Generate a unique quote ID and cache the price (Upstash Redis cache)
     const quoteId = generateQuoteId();
     await storePriceQuote(quoteId, priceData.priceWei);
     
