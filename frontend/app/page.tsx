@@ -468,7 +468,7 @@ function BlobSenderApp() {
             BlobSender
           </h1>
           <p className="text-slate-300 text-lg max-w-2xl mx-auto">
-            Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any text.
+            Create and share blobs on Ethereum using EIP-4844. Post messages, greetings, or anything you want - on-chain.
           </p>
         </header>
 
@@ -485,10 +485,10 @@ function BlobSenderApp() {
               Send Your Blob
             </p>
             <p className="text-slate-300 mb-4 max-w-xxl mx-auto">
-              Send a message to your mom, tell the world your secrets, or just say hi to the blockchain.
+              Send a note to your mom, confess secrets, or just say hi to the blockchain.
             </p>
             <p className="text-sm text-slate-400 italic max-w-xl mx-auto">
-              &ldquo;Choose your words wisely... or don&apos;t. We&apos;re not your mom.&rdquo; - The Blockchain
+              &ldquo;Choose your words wisely… or don&apos;t. We&apos;re not your mom.&rdquo;
             </p>
           </div>
 
@@ -508,10 +508,12 @@ function BlobSenderApp() {
           {/* Withdraw Info */}
           {withdrawInfo && <WithdrawInfo withdrawInfo={withdrawInfo} error={error || undefined} />}
 
-          {/* Success Modal */}
-          {success && (
+          {/* Success/Loading Modal */}
+          {(loading || success) && (
             <SuccessModal
               success={success}
+              loading={loading}
+              loadingMessage={getLoadingMessage()}
               onClose={closeSuccessModal}
               onShareTwitter={shareOnTwitter}
               onShareFarcaster={shareOnFarcaster}

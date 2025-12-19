@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "BlobSender - Create and Publish Blobs on Ethereum",
+    default: "BlobSender - Create and Share Blobs on Ethereum",
     template: "%s | BlobSender",
   },
-  description: "Create and publish blobs on Ethereum using EIP-4844. BlobSender makes it easy to store data on the blockchain with minimal cost. Share your messages, greetings, or any data permanently on Ethereum.",
+  description: "Create and share blobs on Ethereum using EIP-4844. Post messages, greetings, or anything you want - on-chain.",
   keywords: [
     "ethereum",
     "blob",
@@ -42,21 +42,21 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://blobsender.xyz",
     siteName: "BlobSender",
-    title: "BlobSender - Create and Publish Blobs on Ethereum",
-    description: "Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any text.",
+    title: "BlobSender - Create and Share Blobs on Ethereum",
+    description: "Create and share blobs on Ethereum using EIP-4844. Post messages, greetings, or anything you want - on-chain.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "BlobSender - Create and Publish Blobs on Ethereum",
+        alt: "BlobSender - Create and Share Blobs on Ethereum",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "BlobSender - Create and Publish Blobs on Ethereum",
-    description: "Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any text.",
+    title: "BlobSender - Create and Share Blobs on Ethereum",
+    description: "Create and share blobs on Ethereum using EIP-4844. Post messages, greetings, or anything you want - on-chain.",
     images: ["/og-image.png"],
     creator: "@blobsender",
   },
@@ -95,7 +95,7 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'WebApplication',
               name: 'BlobSender',
-              description: 'Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any text.',
+              description: 'Create and share blobs on Ethereum using EIP-4844. Post messages, greetings, or anything you want - on-chain.',
               url: 'https://blobsender.xyz',
               applicationCategory: 'BlockchainApplication',
               operatingSystem: 'Web',
