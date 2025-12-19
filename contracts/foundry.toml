@@ -1,0 +1,19 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+# Compiler settings optimized for minimal bytecode size
+optimizer = true
+optimizer_runs = 1  # Lower runs = smaller bytecode, higher runs = cheaper runtime gas
+via_ir = true  # Use IR-based code generation for better optimization
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+[profile.mainnet]
+chain_id = 1
+eth_rpc_url = "${MAINNET_RPC_URL}"
+
+[profile.sepolia]
+chain_id = 11155111
+eth_rpc_url = "${SEPOLIA_RPC_URL}"

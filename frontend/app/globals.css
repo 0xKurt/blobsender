@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  min-height: 100vh;
+}
+
+.rainbow-border {
+  border: double 2px transparent;
+  border-radius: 0.75rem;
+  background-image: 
+    linear-gradient(#1e293b, #1e293b), 
+    conic-gradient(
+      from 0deg,
+      #ff0000, /* Red */
+      #ff7f00, /* Orange */
+      #ffff00, /* Yellow */
+      #00ff00, /* Green */
+      #00ffff, /* Cyan */
+      #0000ff, /* Blue */
+      #4b0082, /* Indigo */
+      #9400d3, /* Violet */
+      #ff0000  /* Red (to complete the circle) */
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 
+    0 0 8px rgba(129, 140, 248, 0.4), /* Lighter indigo glow */
+    0 0 15px rgba(168, 85, 247, 0.3); /* Lighter purple glow */
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.rainbow-border:focus {
+  outline: none;
+  box-shadow: 
+    0 0 12px rgba(129, 140, 248, 0.5),
+    0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+.rainbow-text {
+  background: conic-gradient(
+    from 0deg,
+    #ff0000, /* Red */
+    #ff7f00, /* Orange */
+    #ffff00, /* Yellow */
+    #00ff00, /* Green */
+    #00ffff, /* Cyan */
+    #0000ff, /* Blue */
+    #4b0082, /* Indigo */
+    #9400d3, /* Violet */
+    #ff0000  /* Red (to complete the circle) */
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.shadow-inner-lg {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+}
