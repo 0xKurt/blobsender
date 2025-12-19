@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useConnect, useDisconnect } from 'wagmi';
 import { shortenAddress } from '../lib/utils';
 import type { Address } from 'viem';
@@ -11,10 +11,19 @@ interface WalletConnectionProps {
 }
 
 export function WalletConnection({ isConnected, address }: WalletConnectionProps) {
-  // Use lazy initializer to avoid calling setState in effect
-  const [mounted] = useState(() => typeof window !== 'undefined');
+  // Initialize to false, set to true after mount to avoid hydration mismatch
+  const [mounted, setMounted] = useState(false);
   const { connect, connectors, isPending: isConnecting, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
+
+  useEffect(() => {
+    // Defer state update to avoid hydration mismatch
+    // This ensures server and client render the same initial content
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (!mounted) {
     return (
@@ -28,14 +37,16 @@ export function WalletConnection({ isConnected, address }: WalletConnectionProps
     return (
       <div className="space-y-4">
         <button
-          onClick={() => {
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
             const connector = connectors.find((c) => c.id === 'injected' || c.type === 'injected') || connectors[0];
             if (connector) {
               connect({ connector });
             }
           }}
           disabled={isConnecting || connectors.length === 0}
-          className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full font-bold text-l text-white shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+          className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full font-bold text-base text-white shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
         >
           {isConnecting ? 'Connecting...' : 'Connect Wallet'}
         </button>
@@ -54,8 +65,12 @@ export function WalletConnection({ isConnected, address }: WalletConnectionProps
       </span>
       <span className="text-slate-300 font-medium">Connected: {address ? shortenAddress(address) : ''}</span>
       <button
-        onClick={() => disconnect()}
-        className="px-4 py-2 bg-slate-700 rounded-full text-slate-200 hover:bg-slate-600 transition-all duration-200"
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          disconnect();
+        }}
+        className="px-4 py-2 bg-slate-700 rounded-full text-slate-200 hover:bg-slate-600 transition-all duration-200 font-medium"
       >
         Disconnect
       </button>

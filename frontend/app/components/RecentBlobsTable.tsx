@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import type { RecentBlob } from '../types';
 import { shortenAddress, formatDate, formatDateShort, getExplorerUrl } from '../lib/utils';
@@ -45,11 +45,12 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
               const isExpanded = expandedRows.has(idx);
               const displayMessage = isExpanded ? blob.message : (blob.message.length > 40 ? blob.message.substring(0, 40) + '...' : blob.message);
               const creatorUrl = getExplorerUrl('address', blob.creator);
+              // Use escrowId as unique key instead of index
+              const rowKey = blob.escrowId || `blob-${idx}`;
 
               return (
-                <>
+                <React.Fragment key={rowKey}>
                   <tr
-                    key={idx}
                     className="border-b border-slate-800 hover:bg-slate-700/30 transition-colors duration-200 cursor-pointer"
                     onClick={() => toggleRow(idx)}
                   >
@@ -94,7 +95,7 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                     </td>
                   </tr>
                   {isExpanded && (
-                    <tr key={`${idx}-expanded`} className="border-b border-slate-800 bg-slate-900/50">
+                    <tr className="border-b border-slate-800 bg-slate-900/50">
                       <td colSpan={5} className="p-6">
                         <div className="space-y-3">
                           <div>
@@ -145,7 +146,7 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               );
             })}
           </tbody>

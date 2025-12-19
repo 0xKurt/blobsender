@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, Wallet } from 'lucide-react';
 import { MAX_TEXT_LENGTH } from '../lib/constants';
 
@@ -21,8 +21,17 @@ export function BlobForm({
   loadingMessage,
   isConnected = true,
 }: BlobFormProps) {
+  const [mounted, setMounted] = useState(false);
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Defer state update to avoid hydration mismatch
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,14 +56,14 @@ export function BlobForm({
           }}
           maxLength={MAX_TEXT_LENGTH}
           placeholder={
-            !isConnected
+            !mounted || !isConnected
               ? 'Connect your wallet to start creating blobs...'
               : `Type your message here (max ${MAX_TEXT_LENGTH} characters)...`
           }
           className="w-full h-56 bg-slate-900/70 text-slate-100 rounded-xl p-6 rainbow-border resize-none focus:ring-0 focus:border-transparent transition-shadow duration-300 shadow-inner-lg"
           disabled={loading || disabled}
         />
-        {!isConnected && (
+        {mounted && !isConnected && (
           <div className="mt-3 p-3 bg-amber-900/30 border border-amber-600/50 rounded-lg">
             <p className="text-amber-400 text-sm text-center flex items-center justify-center gap-2">
               <Wallet className="w-4 h-4" />
@@ -62,9 +71,11 @@ export function BlobForm({
             </p>
           </div>
         )}
-        <div className="text-right text-sm text-slate-400 mt-3">
-          {text.length}/{MAX_TEXT_LENGTH}
-        </div>
+        {mounted && (
+          <div className="text-right text-sm text-slate-400 mt-3">
+            {text.length}/{MAX_TEXT_LENGTH}
+          </div>
+        )}
       </div>
 
       <div className="flex justify-center">
