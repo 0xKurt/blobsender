@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi';
@@ -455,7 +456,15 @@ function BlobSenderApp() {
       <div className="container mx-auto px-4 py-12 max-w-5xl">
         {/* Header */}
         <header className="text-center mb-10">
-          <h1 className="text-4xl font-bold mb-4 tracking-tight text-slate-100">
+          <h1 className="text-4xl font-bold mb-4 tracking-tight text-slate-100 flex items-center justify-center gap-3">
+            <Image 
+              src="/favicon.ico" 
+              alt="BlobSender icon" 
+              width={40}
+              height={40}
+              className="w-10 h-10"
+              unoptimized
+            />
             BlobSender
           </h1>
           <p className="text-slate-300 text-lg max-w-2xl mx-auto">
