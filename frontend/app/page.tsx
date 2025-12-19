@@ -452,7 +452,7 @@ function BlobSenderApp() {
             BlobSender
           </h1>
           <p className="text-slate-300 text-lg max-w-2xl mx-auto">
-            Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any data.
+            Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any text.
           </p>
         </header>
 

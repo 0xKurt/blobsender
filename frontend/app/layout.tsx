@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     url: "https://blobsender.xyz",
     siteName: "BlobSender",
     title: "BlobSender - Create and Publish Blobs on Ethereum",
-    description: "Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any data permanently on the blockchain.",
+    description: "Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any text.",
     images: [
       {
         url: "/og-image.png",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "BlobSender - Create and Publish Blobs on Ethereum",
-    description: "Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any data permanently on the blockchain.",
+    description: "Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any text.",
     images: ["/og-image.png"],
     creator: "@blobsender",
   },
@@ -95,7 +95,7 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'WebApplication',
               name: 'BlobSender',
-              description: 'Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any data permanently on the blockchain.',
+              description: 'Create and publish blobs on Ethereum using EIP-4844. Share your messages, greetings, or any text.',
               url: 'https://blobsender.xyz',
               applicationCategory: 'BlockchainApplication',
               operatingSystem: 'Web',

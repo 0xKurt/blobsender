@@ -1,11 +1,11 @@
 /**
- * File-based blob cache for storing recent blob creations
- * This ensures blobs are accessible across different API routes and serverless function invocations
- * Uses filesystem to persist cache across instances
+ * Hybrid blob cache: Local cache for speed, Upstash Redis for persistence
+ * Only writes to Upstash when blob is published to minimize API calls
  */
 
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
+import { getRedisClient, isUpstashConfigured } from './upstash';
 
 export interface BlobCacheEntry {
   creator: string;
@@ -18,7 +18,7 @@ export interface BlobCacheEntry {
 const MAX_BLOBS = 50;
 const MAX_AGE_DAYS = 18;
 
-// Cache file path (in .next/cache directory, which is gitignored)
+// Local file cache (primary storage, synced with Upstash)
 const getCacheFilePath = (): string => {
   const cacheDir = join(process.cwd(), '.next', 'cache', 'blobs');
   return join(cacheDir, 'blobs.json');
@@ -33,7 +33,6 @@ async function ensureCacheDir(): Promise<void> {
   try {
     await fs.mkdir(cacheDir, { recursive: true });
   } catch (error: unknown) {
-    // Directory might already exist, that's fine
     if ((error as { code?: string })?.code !== 'EEXIST') {
       console.warn('[blob-cache] Could not create cache directory:', error);
     }
@@ -41,9 +40,9 @@ async function ensureCacheDir(): Promise<void> {
 }
 
 /**
- * Read blob cache from file
+ * Read from local file cache (fallback)
  */
-export async function readBlobCache(): Promise<BlobCacheEntry[]> {
+async function readLocalFileCache(): Promise<BlobCacheEntry[]> {
   try {
     await ensureCacheDir();
     const cacheFilePath = getCacheFilePath();
@@ -51,80 +50,145 @@ export async function readBlobCache(): Promise<BlobCacheEntry[]> {
     const cache: BlobCacheEntry[] = JSON.parse(data);
     return Array.isArray(cache) ? cache : [];
   } catch (error: unknown) {
-    // File doesn't exist or is invalid, return empty cache
     if ((error as { code?: string })?.code === 'ENOENT') {
       return [];
     }
-    console.warn('[blob-cache] Error reading cache file:', error);
+    console.warn('[blob-cache] Error reading local file cache:', error);
     return [];
   }
 }
 
 /**
- * Write blob cache to file
+ * Write to local file cache (backup)
  */
-async function writeBlobCache(blobs: BlobCacheEntry[]): Promise<void> {
+async function writeLocalFileCache(blobs: BlobCacheEntry[]): Promise<void> {
   try {
     await ensureCacheDir();
     const cacheFilePath = getCacheFilePath();
     await fs.writeFile(cacheFilePath, JSON.stringify(blobs, null, 2), 'utf-8');
   } catch (error: unknown) {
-    console.error('[blob-cache] Error writing cache file:', error);
-    throw error;
+    console.warn('[blob-cache] Error writing local file cache:', error);
   }
 }
 
 /**
- * Add a new blob to the cache (keeps only last MAX_BLOBS, removes oldest if exceeded)
+ * Load cache from Upstash (only called once on startup or when local cache is empty)
  */
-export async function addBlobToCache(blob: BlobCacheEntry): Promise<void> {
+async function loadFromUpstash(): Promise<BlobCacheEntry[]> {
+  if (!isUpstashConfigured()) {
+    console.log('[blob-cache] Upstash not configured, using local cache only');
+    return readLocalFileCache();
+  }
+
   try {
-    const cache = await readBlobCache();
-    // Add new blob at the beginning
-    cache.unshift(blob);
+    const redis = getRedisClient();
+    const data = await redis.get<BlobCacheEntry[]>('blobs:cache');
     
-    // Filter out blobs older than MAX_AGE_DAYS
-    const now = Date.now();
-    const maxAgeMs = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
-    const filteredCache = cache.filter((entry) => {
-      const entryDate = new Date(entry.date).getTime();
-      const age = now - entryDate;
-      return age <= maxAgeMs;
-    });
-    
-    // Keep only last MAX_BLOBS (remove oldest if exceeded)
-    const trimmedCache = filteredCache.slice(0, MAX_BLOBS);
-    
-    // If we removed any blobs, log it
-    if (cache.length > trimmedCache.length) {
-      const removed = cache.length - trimmedCache.length;
-      console.log(`[blob-cache] Removed ${removed} old blob(s) from cache (max: ${MAX_BLOBS}, age limit: ${MAX_AGE_DAYS} days)`);
+    if (Array.isArray(data)) {
+      console.log(`[blob-cache] Loaded ${data.length} blobs from Upstash`);
+      return data;
     }
     
-    await writeBlobCache(trimmedCache);
-    console.log(`[blob-cache] Added blob to cache (total: ${trimmedCache.length})`);
+    // If Upstash is empty, try local file as fallback
+    return readLocalFileCache();
   } catch (error: unknown) {
-    console.error('[blob-cache] Error adding blob to cache:', error);
-    throw error;
+    console.warn('[blob-cache] Error loading from Upstash, using local cache:', error);
+    return readLocalFileCache();
   }
 }
 
 /**
- * Get all cached blobs, filtered by age (max 18 days old)
+ * Save cache to Upstash (only when blob is published)
  */
-export async function getCachedBlobs(): Promise<BlobCacheEntry[]> {
-  const cache = await readBlobCache();
+async function saveToUpstash(blobs: BlobCacheEntry[]): Promise<void> {
+  if (!isUpstashConfigured()) {
+    // If Upstash not configured, just save to local file
+    await writeLocalFileCache(blobs);
+    return;
+  }
+
+  try {
+    const redis = getRedisClient();
+    await redis.set('blobs:cache', blobs);
+    console.log(`[blob-cache] Saved ${blobs.length} blobs to Upstash`);
+    
+    // Also update local file as backup
+    await writeLocalFileCache(blobs);
+  } catch (error: unknown) {
+    console.error('[blob-cache] Error saving to Upstash:', error);
+    // Fallback to local file if Upstash fails
+    await writeLocalFileCache(blobs);
+  }
+}
+
+/**
+ * Filter and trim cache according to limits
+ */
+function filterAndTrimCache(cache: BlobCacheEntry[]): BlobCacheEntry[] {
   const now = Date.now();
-  const maxAgeMs = MAX_AGE_DAYS * 24 * 60 * 60 * 1000; // 18 days in milliseconds
+  const maxAgeMs = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
   
-  // Filter out blobs older than 18 days
-  const filtered = cache.filter((blob) => {
-    const blobDate = new Date(blob.date).getTime();
-    const age = now - blobDate;
+  // Filter by age
+  const filtered = cache.filter((entry) => {
+    const entryDate = new Date(entry.date).getTime();
+    const age = now - entryDate;
     return age <= maxAgeMs;
   });
   
-  // Keep only last MAX_BLOBS
+  // Trim to MAX_BLOBS
   return filtered.slice(0, MAX_BLOBS);
 }
 
+/**
+ * Add a new blob to the cache
+ * Writes to local file immediately, syncs to Upstash when blob is published
+ */
+export async function addBlobToCache(blob: BlobCacheEntry): Promise<void> {
+  // Read from local file (not in-memory)
+  const cache = await readLocalFileCache();
+  
+  // Add new blob at the beginning
+  const updatedCache = [blob, ...cache];
+  
+  // Filter and trim
+  const trimmedCache = filterAndTrimCache(updatedCache);
+  
+  // Calculate removed count
+  const removed = updatedCache.length - trimmedCache.length;
+  
+  // Write to local file immediately (fast)
+  await writeLocalFileCache(trimmedCache);
+  
+  // Sync to Upstash (this is the only Upstash write - when blob is published)
+  await saveToUpstash(trimmedCache);
+  
+  if (removed > 0) {
+    console.log(`[blob-cache] Removed ${removed} old blob(s) from cache`);
+  }
+  
+  console.log(`[blob-cache] Added blob to cache (total: ${trimmedCache.length})`);
+}
+
+/**
+ * Get all cached blobs
+ * Always reads from local file first (fast), only loads from Upstash if file is empty (first startup)
+ */
+export async function getCachedBlobs(): Promise<BlobCacheEntry[]> {
+  // Always read from local file first
+  let cache = await readLocalFileCache();
+  
+  // Only if file is empty AND Upstash is configured, load from Upstash once
+  if (cache.length === 0 && isUpstashConfigured()) {
+    console.log('[blob-cache] Local file cache is empty, loading from Upstash (first startup)');
+    cache = await loadFromUpstash();
+    
+    // Save to local file for future reads
+    if (cache.length > 0) {
+      await writeLocalFileCache(cache);
+      console.log(`[blob-cache] Loaded ${cache.length} blobs from Upstash and saved to local file`);
+    }
+  }
+  
+  // Return filtered/trimmed cache
+  return filterAndTrimCache(cache);
+}
