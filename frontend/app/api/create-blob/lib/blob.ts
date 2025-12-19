@@ -1,10 +1,8 @@
 import {
   Wallet,
-  JsonRpcProvider,
   toUtf8Bytes,
   Interface,
   type TransactionResponse,
-  type JsonRpcProvider as EthersJsonRpcProvider,
 } from 'ethers';
 
 import {
@@ -15,6 +13,7 @@ import {
 } from '@blobkit/sdk';
 
 import { BLOB_SIZE, ESCROW_ABI } from './constants';
+import { fetchBlobGasPrice } from '../../lib/blobscan';
 
 /**
  * Prepared blob data with KZG commitment and proof
@@ -98,16 +97,8 @@ export async function sendBlobTransaction(
   // -----------------------------
   // Blob gas price (EIP-4844)
   // -----------------------------
-  let maxFeePerBlobGas: bigint;
-
-  try {
-    const provider = wallet.provider as EthersJsonRpcProvider;
-    const price = await provider.send('eth_blobGasPrice', []);
-    maxFeePerBlobGas = BigInt(price);
-  } catch {
-    // Safe fallback
-    maxFeePerBlobGas = 400_000_000_000n; // 400 gwei
-  }
+  // Fetch from blobscan API (RPC eth_blobGasPrice always fails)
+  const maxFeePerBlobGas = await fetchBlobGasPrice();
 
   // -----------------------------
   // Base fees
