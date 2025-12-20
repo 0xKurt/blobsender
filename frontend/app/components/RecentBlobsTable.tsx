@@ -27,9 +27,102 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
   };
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-700 max-w-2xl mx-auto">
+    <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-4 md:p-6 shadow-2xl border border-slate-700 max-w-2xl mx-auto">
       <h2 className="text-xl font-bold mb-5 text-center text-slate-200">Recent Blobs</h2>
-      <div className="overflow-x-auto">
+      
+      {/* Mobile Card View */}
+      <div className="block md:hidden space-y-3">
+        {blobs.map((blob, idx) => {
+          const isExpanded = expandedRows.has(idx);
+          const creatorUrl = getExplorerUrl('address', blob.creator);
+          const rowKey = blob.escrowId || `blob-${idx}`;
+
+          return (
+            <div
+              key={rowKey}
+              className="bg-slate-900/50 rounded-lg border border-slate-700 p-4 cursor-pointer hover:bg-slate-800/50 transition-colors"
+              onClick={() => toggleRow(idx)}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-slate-200 text-sm break-words">
+                    {isExpanded ? blob.message : (blob.message.length > 60 ? blob.message.substring(0, 60) + '...' : blob.message)}
+                  </p>
+                </div>
+                <button className="flex-shrink-0 text-slate-400">
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              
+              <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
+                <a
+                  href={creatorUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors inline-flex items-center gap-1"
+                >
+                  {shortenAddress(blob.creator)}
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <span>{formatDateShort(blob.date)}</span>
+              </div>
+
+              {isExpanded && (
+                <div className="mt-3 pt-3 border-t border-slate-700 space-y-2">
+                  <div>
+                    <span className="text-slate-400 text-xs font-medium">Full Message:</span>
+                    <div className="text-slate-200 mt-1 whitespace-pre-wrap break-words p-2 bg-slate-800/50 rounded border border-slate-700 text-xs">
+                      {blob.message}
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="text-slate-400 font-medium">Creator:</span>
+                      <div className="mt-0.5">
+                        <a
+                          href={creatorUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors inline-flex items-center gap-1 break-all"
+                        >
+                          {blob.creator}
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 font-medium">Date:</span>
+                      <p className="text-slate-200 mt-0.5">{formatDate(blob.date)}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 font-medium">Blobscan:</span>
+                      <div className="mt-0.5">
+                        <a
+                          href={blob.blobscanLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors inline-flex items-center gap-1"
+                        >
+                          View on Blobscan
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-700 text-slate-400">
@@ -45,7 +138,6 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
               const isExpanded = expandedRows.has(idx);
               const displayMessage = isExpanded ? blob.message : (blob.message.length > 40 ? blob.message.substring(0, 40) + '...' : blob.message);
               const creatorUrl = getExplorerUrl('address', blob.creator);
-              // Use escrowId as unique key instead of index
               const rowKey = blob.escrowId || `blob-${idx}`;
 
               return (
