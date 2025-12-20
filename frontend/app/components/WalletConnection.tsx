@@ -30,26 +30,26 @@ export function WalletConnection() {
   }, [isConnected, chainId, expectedChainId, switchChain]);
 
   return (
-    <div className="text-center mb-12">
-      <div className="inline-flex flex-col items-center gap-3">
+    <div className="text-center mb-8">
+      <div className="inline-flex flex-col items-center gap-2">
         <ConnectKitButton.Custom>
           {({ isConnected: ckConnected, show, address: ckAddress, ensName }) => {
             return (
               <button
                 onClick={show}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full font-bold text-base text-white shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105"
+                className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full font-bold text-sm text-white shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105"
               >
                 {ckConnected ? (
-                  <div className="flex items-center gap-3">
-                    <span className="relative flex h-3 w-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="relative flex h-2.5 w-2.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
                     </span>
-                    <span>
+                    <span className="text-sm">
                       {ensName || `${ckAddress?.slice(0, 6)}...${ckAddress?.slice(-4)}`}
                     </span>
                     {balance && (
-                      <span className="text-sm opacity-90">
+                      <span className="text-xs opacity-90">
                         {parseFloat(formatEther(balance.value)).toFixed(4)} {balance.symbol}
                       </span>
                     )}
@@ -62,7 +62,7 @@ export function WalletConnection() {
           }}
         </ConnectKitButton.Custom>
         {isConnected && chainId !== expectedChainId && expectedChainId && (
-          <div className="text-amber-400 text-sm flex items-center gap-2">
+          <div className="text-amber-400 text-xs flex items-center gap-1.5">
             <span>⚠️ Please switch to the correct network</span>
           </div>
         )}

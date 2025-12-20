@@ -46,7 +46,7 @@ export function BlobForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <textarea
           value={text}
@@ -60,19 +60,19 @@ export function BlobForm({
               ? 'Connect your wallet to start creating blobs...'
               : `Type your message here (max ${MAX_TEXT_LENGTH} characters)...`
           }
-          className="w-full h-56 bg-slate-900/70 text-slate-100 rounded-xl p-6 rainbow-border resize-none focus:ring-0 focus:border-transparent transition-shadow duration-300 shadow-inner-lg"
+          className="w-full h-48 bg-slate-900/70 text-slate-100 rounded-lg p-5 rainbow-border resize-none focus:ring-0 focus:border-transparent transition-shadow duration-300 shadow-inner-lg text-sm"
           disabled={loading || disabled}
         />
         {mounted && !isConnected && (
-          <div className="mt-3 p-3 bg-amber-900/30 border border-amber-600/50 rounded-lg">
-            <p className="text-amber-400 text-sm text-center flex items-center justify-center gap-2">
-              <Wallet className="w-4 h-4" />
+          <div className="mt-2.5 p-2.5 bg-amber-900/30 border border-amber-600/50 rounded-lg">
+            <p className="text-amber-400 text-xs text-center flex items-center justify-center gap-1.5">
+              <Wallet className="w-3.5 h-3.5" />
               Please connect your wallet to create blobs
             </p>
           </div>
         )}
         {mounted && (
-          <div className="text-right text-sm text-slate-400 mt-3">
+          <div className="text-right text-xs text-slate-400 mt-2.5">
             {text.length}/{MAX_TEXT_LENGTH}
           </div>
         )}
@@ -82,11 +82,11 @@ export function BlobForm({
         <button
           type="submit"
           disabled={loading || disabled || text.length === 0}
-          className="px-8 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl font-medium text-sm text-white shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01]"
+          className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg font-medium text-xs text-white shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01]"
         >
           {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="flex items-center justify-center gap-1.5">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
               {loadingMessage || 'Creating your blob...'}
             </span>
           ) : (

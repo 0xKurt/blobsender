@@ -27,17 +27,17 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
   };
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-slate-700">
-      <h2 className="text-3xl font-bold mb-6 text-center text-slate-200">Recent Blobs</h2>
+    <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-700 max-w-2xl mx-auto">
+      <h2 className="text-xl font-bold mb-5 text-center text-slate-200">Recent Blobs</h2>
       <div className="overflow-x-auto">
-        <table className="w-full text-base">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-700 text-slate-400">
-              <th className="text-left p-4 w-12"></th>
-              <th className="text-left p-4">Creator</th>
-              <th className="text-left p-4">Message</th>
-              <th className="text-left p-4">Date</th>
-              <th className="text-left p-4">Link</th>
+              <th className="text-left p-3 w-10"></th>
+              <th className="text-left p-3">Creator</th>
+              <th className="text-left p-3">Message</th>
+              <th className="text-left p-3">Date</th>
+              <th className="text-left p-3">Link</th>
             </tr>
           </thead>
           <tbody>
@@ -54,14 +54,14 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                     className="border-b border-slate-800 hover:bg-slate-700/30 transition-colors duration-200 cursor-pointer"
                     onClick={() => toggleRow(idx)}
                   >
-                    <td className="p-4 text-slate-400 w-8">
+                    <td className="p-3 text-slate-400 w-8">
                       {isExpanded ? (
-                        <ChevronUp className="w-4 h-4" />
+                        <ChevronUp className="w-3.5 h-3.5" />
                       ) : (
-                        <ChevronDown className="w-4 h-4" />
+                        <ChevronDown className="w-3.5 h-3.5" />
                       )}
                     </td>
-                    <td className="p-4 text-slate-300 whitespace-nowrap">
+                    <td className="p-3 text-slate-300 whitespace-nowrap">
                       <a
                         href={creatorUrl}
                         target="_blank"
@@ -73,15 +73,15 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </td>
-                    <td className="p-4 text-slate-200 max-w-md">
+                    <td className="p-3 text-slate-200 max-w-xs">
                       <div className="truncate" title={blob.message}>
                         {displayMessage}
                       </div>
                     </td>
-                    <td className="p-4 text-slate-400 whitespace-nowrap text-sm">
+                    <td className="p-3 text-slate-400 whitespace-nowrap text-xs">
                       {formatDateShort(blob.date)}
                     </td>
-                    <td className="p-4 whitespace-nowrap">
+                    <td className="p-3 whitespace-nowrap">
                       <a
                         href={blob.blobscanLink}
                         target="_blank"
@@ -96,7 +96,7 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                   </tr>
                   {isExpanded && (
                     <tr className="border-b border-slate-800 bg-slate-900/50">
-                      <td colSpan={5} className="p-6">
+                      <td colSpan={5} className="p-4">
                         <div className="space-y-3">
                           <div>
                             <span className="text-slate-400 text-sm font-medium">Full Message:</span>
@@ -104,7 +104,7 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                               {blob.message}
                             </div>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-700">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-700">
                             <div>
                               <span className="text-slate-400 text-sm font-medium">Creator:</span>
                               <div className="mt-1">

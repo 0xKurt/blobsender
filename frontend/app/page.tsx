@@ -454,21 +454,21 @@ function BlobSenderApp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-slate-200">
-      <div className="container mx-auto px-4 py-12 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Header */}
-        <header className="text-center mb-10">
-          <h1 className="text-4xl font-bold mb-4 tracking-tight text-slate-100 flex items-center justify-center gap-3">
+        <header className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-3 tracking-tight text-slate-100 flex items-center justify-center gap-2">
             <Image 
               src="/favicon.ico" 
               alt="BlobSender icon" 
-              width={40}
-              height={40}
-              className="w-10 h-10"
+              width={32}
+              height={32}
+              className="w-8 h-8"
               unoptimized
             />
             BlobSender
           </h1>
-          <p className="text-slate-300 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-300 text-base max-w-2xl mx-auto">
             Create and share blobs on Ethereum using EIP-4844. Post messages, greetings, or anything you want - on-chain.
           </p>
         </header>
@@ -477,16 +477,16 @@ function BlobSenderApp() {
         <WalletConnection />
 
         {/* Main Form Card */}
-        <div className="bg-slate-800/50 backdrop-blur-md rounded-3xl p-10 mb-12 shadow-2xl border border-slate-700">
+        <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 mb-10 shadow-2xl border border-slate-700 max-w-2xl mx-auto">
           {/* Explanatory Text */}
-          <div className="text-center mb-10">
-            <p className="text-2xl mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400 font-semibold">
+          <div className="text-center mb-8">
+            <p className="text-xl mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400 font-semibold">
               Send Your Blob
             </p>
-            <p className="text-slate-300 mb-4 max-w-xxl mx-auto">
+            <p className="text-slate-300 mb-3 max-w-xxl mx-auto text-sm">
               Send a note to your mom, confess secrets, or just say hi to the blockchain.
             </p>
-            <p className="text-sm text-slate-400 italic max-w-xl mx-auto">
+            <p className="text-xs text-slate-400 italic max-w-xl mx-auto">
               &ldquo;Choose your words wisely… or don&apos;t. We&apos;re not your mom.&rdquo;
             </p>
           </div>
