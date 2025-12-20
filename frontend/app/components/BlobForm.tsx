@@ -48,6 +48,14 @@ export function BlobForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
+      {mounted && !isConnected && (
+          <div className="mb-4 p-2.5 bg-amber-900/30 border border-amber-600/50 rounded-lg">
+            <p className="text-amber-400 text-xs text-center flex items-center justify-center gap-1.5">
+              <Wallet className="w-3.5 h-3.5" />
+              Please connect your wallet to create blobs
+            </p>
+          </div>
+        )}
         <textarea
           value={text}
           onChange={(e) => {
@@ -63,14 +71,6 @@ export function BlobForm({
           className="w-full h-48 bg-slate-900/70 text-slate-100 rounded-lg p-5 rainbow-border resize-none focus:ring-0 focus:border-transparent transition-shadow duration-300 shadow-inner-lg text-sm"
           disabled={loading || disabled}
         />
-        {mounted && !isConnected && (
-          <div className="mt-2.5 p-2.5 bg-amber-900/30 border border-amber-600/50 rounded-lg">
-            <p className="text-amber-400 text-xs text-center flex items-center justify-center gap-1.5">
-              <Wallet className="w-3.5 h-3.5" />
-              Please connect your wallet to create blobs
-            </p>
-          </div>
-        )}
         {mounted && (
           <div className="text-right text-xs text-slate-400 mt-2.5">
             {text.length}/{MAX_TEXT_LENGTH}
