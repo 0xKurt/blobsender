@@ -471,7 +471,7 @@ function BlobSenderApp() {
           </h1>
           <EIP4844Link />
           <p className="text-slate-300 text-base max-w-2xl mx-auto">
-            Create and share blobs on Ethereum using EIP-4844. Post messages, greetings, or anything you want - on-chain.
+            Create and share blobs on Ethereum using EIP-4844. <br />Post messages, greetings, or anything you want — on-chain.
           </p>
         </header>
 
@@ -514,8 +514,11 @@ function BlobSenderApp() {
             <SuccessModal
               success={success}
               loading={loading}
-              loadingMessage={getLoadingMessage()}
-              onClose={closeSuccessModal}
+              loadingMessage={getLoadingMessage() || 'Creating your blob...'}
+              onClose={() => {
+                setLoading(false);
+                setSuccess(null);
+              }}
               onShareTwitter={shareOnTwitter}
               onShareFarcaster={shareOnFarcaster}
             />
