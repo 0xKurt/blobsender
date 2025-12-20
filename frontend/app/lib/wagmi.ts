@@ -67,11 +67,7 @@ export function getWagmiConfig() {
       appIcon: typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : undefined,
     });
     
-    _wagmiConfig = createConfig({
-      ...ckConfig,
-      // Reduce polling frequency
-      pollingInterval: 30000, // Poll every 30 seconds instead of default (usually 4 seconds)
-    });
+    _wagmiConfig = createConfig(ckConfig);
   }
   return _wagmiConfig;
 }
