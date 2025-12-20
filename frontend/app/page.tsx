@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
+import { ConnectKitProvider } from 'connectkit';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi';
 import { parseEther } from 'viem';
-import { wagmiConfig, getWagmiConfig } from './lib/wagmi';
+import { getWagmiConfig } from './lib/wagmi';
 import { getChainConfigInstance } from './lib/config';
 import { ESCROW_ABI } from './lib/constants';
 import { generateEscrowId } from './lib/utils';
@@ -473,9 +474,7 @@ function BlobSenderApp() {
         </header>
 
         {/* Wallet Connection */}
-        <div className="text-center mb-12">
-          <WalletConnection isConnected={isConnected} address={address} />
-        </div>
+        <WalletConnection />
 
         {/* Main Form Card */}
         <div className="bg-slate-800/50 backdrop-blur-md rounded-3xl p-10 mb-12 shadow-2xl border border-slate-700">
@@ -560,21 +559,23 @@ export default function Home() {
         console.log('Wagmi config loaded successfully');
       } catch (error) {
         console.error('Failed to load wagmi config:', error);
-        // Fallback to placeholder config
-        setConfig(wagmiConfig);
       }
     }, 0);
     
     return () => clearTimeout(timeoutId);
   }, [mounted]);
   
-  // Use placeholder config during SSR or before mount
-  const activeConfig = config || wagmiConfig;
+  // Only render when config is loaded
+  if (!config) {
+    return null;
+  }
   
   return (
-    <WagmiProvider config={activeConfig}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <BlobSenderApp />
+        <ConnectKitProvider>
+          <BlobSenderApp />
+        </ConnectKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

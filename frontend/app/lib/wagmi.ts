@@ -1,7 +1,7 @@
 'use client';
 
 import { createConfig, http } from 'wagmi';
-import { injected } from 'wagmi/connectors';
+import { getDefaultConfig } from 'connectkit';
 import { defineChain } from 'viem';
 import { getChainConfigInstance } from './config';
 
@@ -45,15 +45,30 @@ export function getWagmiConfig() {
     }
     // Use static import - Next.js will embed NEXT_PUBLIC_ vars at build time
     const config = getChainConfigInstance();
-    _wagmiConfig = createConfig({
-      chains: [createWagmiChain(config)],
-      connectors: [injected()],
+    const chain = createWagmiChain(config);
+    
+    // Use ConnectKit's getDefaultConfig which automatically includes:
+    // - WalletConnect
+    // - MetaMask
+    // - Coinbase Wallet
+    // - EIP-6963 injected wallets (auto-detected)
+    const ckConfig = getDefaultConfig({
+      chains: [chain],
       transports: {
         [config.chainId]: http(config.rpcUrl, {
           batch: true, // Batch multiple requests together
           retryCount: 1, // Reduce retry attempts
         }),
       },
+      walletConnectProjectId: '1d20028a1dcc5203f921fbac69e4ad12',
+      appName: 'BlobSender',
+      appDescription: 'Create and share blobs on Ethereum using EIP-4844',
+      appUrl: typeof window !== 'undefined' ? window.location.origin : 'https://blobsender.xyz',
+      appIcon: typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : undefined,
+    });
+    
+    _wagmiConfig = createConfig({
+      ...ckConfig,
       // Reduce polling frequency
       pollingInterval: 30000, // Poll every 30 seconds instead of default (usually 4 seconds)
     });
@@ -61,19 +76,4 @@ export function getWagmiConfig() {
   return _wagmiConfig;
 }
 
-/**
- * Wagmi configuration using chain settings from environment
- * This is a placeholder that will be replaced at runtime
- */
-export const wagmiConfig = createConfig({
-  chains: [defineChain({ 
-    id: 1, 
-    name: 'Ethereum', 
-    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, 
-    rpcUrls: { default: { http: ['https://eth.llamarpc.com'] } }, 
-    blockExplorers: { default: { name: 'Etherscan', url: 'https://etherscan.io' } } 
-  })],
-  connectors: [injected()],
-  transports: { 1: http('https://eth.llamarpc.com') },
-});
 
