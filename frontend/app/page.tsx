@@ -14,6 +14,7 @@ import { generateEscrowId } from './lib/utils';
 import { validateText } from './lib/validation';
 import { WalletConnection } from './components/WalletConnection';
 import { BlobForm } from './components/BlobForm';
+import { EIP4844Link } from './components/EIP4844Link';
 import { SuccessModal } from './components/SuccessModal';
 import { ErrorModal } from './components/ErrorModal';
 import { ErrorDisplay } from './components/ErrorDisplay';
@@ -468,6 +469,7 @@ function BlobSenderApp() {
             />
             BlobSender
           </h1>
+          <EIP4844Link />
           <p className="text-slate-300 text-base max-w-2xl mx-auto">
             Create and share blobs on Ethereum using EIP-4844. Post messages, greetings, or anything you want - on-chain.
           </p>
