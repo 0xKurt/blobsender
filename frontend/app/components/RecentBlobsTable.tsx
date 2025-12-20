@@ -40,25 +40,25 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
           return (
             <div
               key={rowKey}
-              className="bg-slate-900/50 rounded-lg border border-slate-700 p-4 cursor-pointer hover:bg-slate-800/50 transition-colors"
+              className="bg-slate-900/50 rounded-lg border border-slate-700 px-2 py-1.5 cursor-pointer hover:bg-slate-800/50 transition-colors"
               onClick={() => toggleRow(idx)}
             >
-              <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="flex items-start justify-between gap-1 mb-1">
                 <div className="flex-1 min-w-0">
-                  <p className="text-slate-200 text-sm break-words">
+                  <p className="text-slate-200 text-sm break-words leading-relaxed">
                     {isExpanded ? blob.message : (blob.message.length > 60 ? blob.message.substring(0, 60) + '...' : blob.message)}
                   </p>
                 </div>
-                <button className="flex-shrink-0 text-slate-400">
+                <button className="flex-shrink-0 text-slate-400 -mr-1 -mt-0.5 p-0">
                   {isExpanded ? (
-                    <ChevronUp className="w-4 h-4" />
+                    <ChevronUp className="w-3.5 h-3.5" />
                   ) : (
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-3.5 h-3.5" />
                   )}
                 </button>
               </div>
               
-              <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
+              <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
                 <a
                   href={creatorUrl}
                   target="_blank"
@@ -73,45 +73,49 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
               </div>
 
               {isExpanded && (
-                <div className="mt-3 pt-3 border-t border-slate-700 space-y-2">
+                <div className="mt-3 pt-3 border-t border-slate-700 space-y-3">
                   <div>
-                    <span className="text-slate-400 text-xs font-medium">Full Message:</span>
-                    <div className="text-slate-200 mt-1 whitespace-pre-wrap break-words p-2 bg-slate-800/50 rounded border border-slate-700 text-xs">
+                    <span className="text-slate-400 text-xs font-medium block mb-1.5">Full Message:</span>
+                    <div className="text-slate-200 whitespace-pre-wrap break-words p-2.5 bg-slate-800/50 rounded border border-slate-700 text-xs leading-relaxed">
                       {blob.message}
                     </div>
                   </div>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <span className="text-slate-400 font-medium">Creator:</span>
-                      <div className="mt-0.5">
-                        <a
-                          href={creatorUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors inline-flex items-center gap-1 break-all"
-                        >
-                          {blob.creator}
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
+                  <div className="space-y-2.5 text-xs">
+                    <div className="pb-2 border-b border-slate-700/50">
+                      <span className="text-slate-400 font-medium block mb-1">Creator:</span>
+                      <a
+                        href={creatorUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors block break-all font-mono text-xs leading-relaxed"
+                      >
+                        <span className="break-all inline-block">{blob.creator}</span>
+                        <ExternalLink className="w-3 h-3 inline-block ml-1.5 align-middle" />
+                      </a>
+                    </div>
+                    {blob.escrowId && (
+                      <div className="pb-2 border-b border-slate-700/50">
+                        <span className="text-slate-400 font-medium block mb-1">Escrow ID:</span>
+                        <p className="text-slate-200 font-mono text-xs break-all leading-relaxed block">{blob.escrowId}</p>
                       </div>
+                    )}
+                    <div className="pb-2 border-b border-slate-700/50">
+                      <span className="text-slate-400 font-medium block mb-1">Date:</span>
+                      <p className="text-slate-200 block">{formatDate(blob.date)}</p>
                     </div>
                     <div>
-                      <span className="text-slate-400 font-medium">Date:</span>
-                      <p className="text-slate-200 mt-0.5">{formatDate(blob.date)}</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 font-medium">Blobscan:</span>
-                      <div className="mt-0.5">
-                        <a
-                          href={blob.blobscanLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors inline-flex items-center gap-1"
-                        >
-                          View on Blobscan
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
+                      <span className="text-slate-400 font-medium block mb-1">Blobscan:</span>
+                      <a
+                        href={blob.blobscanLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors inline-flex items-center gap-1.5"
+                      >
+                        View on Blobscan
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -126,17 +130,16 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-700 text-slate-400">
-              <th className="text-left p-3 w-10"></th>
-              <th className="text-left p-3">Creator</th>
-              <th className="text-left p-3">Message</th>
-              <th className="text-left p-3">Date</th>
-              <th className="text-left p-3">Link</th>
+              <th className="text-left px-2 py-2 w-8"></th>
+              <th className="text-left px-2 py-2">Creator</th>
+              <th className="text-left px-2 py-2">Message</th>
+              <th className="text-left px-2 py-2">Date</th>
+              <th className="text-left px-2 py-2">Link</th>
             </tr>
           </thead>
           <tbody>
             {blobs.map((blob, idx) => {
               const isExpanded = expandedRows.has(idx);
-              const displayMessage = isExpanded ? blob.message : (blob.message.length > 40 ? blob.message.substring(0, 40) + '...' : blob.message);
               const creatorUrl = getExplorerUrl('address', blob.creator);
               const rowKey = blob.escrowId || `blob-${idx}`;
 
@@ -146,14 +149,14 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                     className="border-b border-slate-800 hover:bg-slate-700/30 transition-colors duration-200 cursor-pointer"
                     onClick={() => toggleRow(idx)}
                   >
-                    <td className="p-3 text-slate-400 w-8">
+                    <td className="px-2 py-2 text-slate-400 w-8">
                       {isExpanded ? (
                         <ChevronUp className="w-3.5 h-3.5" />
                       ) : (
                         <ChevronDown className="w-3.5 h-3.5" />
                       )}
                     </td>
-                    <td className="p-3 text-slate-300 whitespace-nowrap">
+                    <td className="px-2 py-2 text-slate-300 whitespace-nowrap">
                       <a
                         href={creatorUrl}
                         target="_blank"
@@ -165,15 +168,15 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </td>
-                    <td className="p-3 text-slate-200 max-w-xs">
-                      <div className="truncate" title={blob.message}>
-                        {displayMessage}
+                    <td className="px-2 py-2 text-slate-200 max-w-xs">
+                      <div className="line-clamp-2 break-words" title={blob.message}>
+                        {blob.message}
                       </div>
                     </td>
-                    <td className="p-3 text-slate-400 whitespace-nowrap text-xs">
+                    <td className="px-2 py-2 text-slate-400 whitespace-nowrap text-xs">
                       {formatDateShort(blob.date)}
                     </td>
-                    <td className="p-3 whitespace-nowrap">
+                    <td className="px-2 py-2 whitespace-nowrap">
                       <a
                         href={blob.blobscanLink}
                         target="_blank"
@@ -196,42 +199,40 @@ export function RecentBlobsTable({ blobs }: RecentBlobsTableProps) {
                               {blob.message}
                             </div>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-700">
-                            <div>
-                              <span className="text-slate-400 text-sm font-medium">Creator:</span>
-                              <div className="mt-1">
-                                <a
-                                  href={creatorUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors duration-200 inline-flex items-center gap-1"
-                                >
-                                  {blob.creator}
-                                  <ExternalLink className="w-3 h-3" />
-                                </a>
+                          <div className="space-y-3 pt-2 border-t border-slate-700">
+                            <div className="pb-2 border-b border-slate-700/50">
+                              <span className="text-slate-400 text-sm font-medium block mb-1">Creator:</span>
+                              <a
+                                href={creatorUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors duration-200 block break-all font-mono text-sm"
+                              >
+                                <span className="break-all">{blob.creator}</span>
+                                <ExternalLink className="w-3.5 h-3.5 inline-block ml-1.5 align-middle" />
+                              </a>
+                            </div>
+                            {blob.escrowId && (
+                              <div className="pb-2 border-b border-slate-700/50">
+                                <span className="text-slate-400 text-sm font-medium block mb-1">Escrow ID:</span>
+                                <p className="text-slate-200 font-mono text-sm break-all block">{blob.escrowId}</p>
                               </div>
+                            )}
+                            <div className="pb-2 border-b border-slate-700/50">
+                              <span className="text-slate-400 text-sm font-medium block mb-1">Date:</span>
+                              <p className="text-slate-200 block">{formatDate(blob.date)}</p>
                             </div>
                             <div>
-                              <span className="text-slate-400 text-sm font-medium">Escrow ID:</span>
-                              <p className="text-slate-200 mt-1 font-mono text-sm break-all">{blob.escrowId}</p>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 text-sm font-medium">Date:</span>
-                              <p className="text-slate-200 mt-1">{formatDate(blob.date)}</p>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 text-sm font-medium">Blobscan:</span>
-                              <div className="mt-1">
-                                <a
-                                  href={blob.blobscanLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors duration-200 inline-flex items-center gap-1"
-                                >
-                                  View on Blobscan
-                                  <ExternalLink className="w-3 h-3" />
-                                </a>
-                              </div>
+                              <span className="text-slate-400 text-sm font-medium block mb-1">Blobscan:</span>
+                              <a
+                                href={blob.blobscanLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors duration-200 inline-flex items-center gap-1.5"
+                              >
+                                View on Blobscan
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
                             </div>
                           </div>
                         </div>
