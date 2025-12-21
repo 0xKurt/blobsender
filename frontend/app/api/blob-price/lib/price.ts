@@ -3,7 +3,7 @@ import { fetchBlobGasPrice } from '../../lib/blobscan';
 
 const DEFAULT_BLOB_GAS_USED = 131072n; // Typical gas per blob
 const ETH_WEI = 1_000_000_000_000_000_000n; // 1 ETH in wei
-const BUFFER_MULTIPLIER = 10n;
+const BUFFER_MULTIPLIER = 4n;
 
 /**
  * Calculate blob price from fee data
